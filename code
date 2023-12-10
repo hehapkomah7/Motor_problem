@@ -1,0 +1,97 @@
+#include <limits>
+#include <iostream>
+#include <vector>
+#include <sstream>
+#include <climits> 
+
+std::vector<int> readArray(int size) {
+	std::vector<int> result;
+	for (int i = 0; i < size; i++) {
+		int value;
+		std::cin >> value;
+		result.push_back(value);
+	}
+	return result;
+}
+
+class MotorCostCalculator {
+	int n;
+	std::vector<int> a;
+	std::vector<int> c;
+	std::vector<int> c0;
+	std::vector<std::vector<int>> s;
+
+public:
+	// returns false if there is an error
+	bool readInput() {
+		std::cin >> n;
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), ';');
+
+		a = readArray(n);
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), ';');
+		c = readArray(n);
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), ';');
+		c0 = readArray(n);
+
+		s.resize(n);
+		for (auto& v : s) { v.resize(n); }
+
+		return (bool)std::cin;
+	}
+
+	void calculate() {
+		for (int i = 0; i < n; i++) {
+			s[0][i] = totalCost(0, i);
+		}
+		for (int i = 1; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				int minVal = INT_MAX;
+				for (int k = 0; k < j; k++) {
+					if (s[i - 1][k] >= minVal) {
+						continue;
+					}
+					int value = s[i - 1][k] + totalCost(k + 1, j);
+					if (value < minVal) {
+						minVal = value;
+					}
+				}
+				s[i][j] = minVal;
+			}
+		}
+	}
+
+	int findMin() {
+		int result = INT_MAX;
+		for (int i = 0; i < n; i++) {
+			if (s[i][n - 1] < result) {
+				result = s[i][n - 1];
+			}
+		}
+		return result;
+	}
+
+	int totalCost(int start, int end) {
+		int sum = 0;
+		for (int i = start; i < end + 1; i++) {
+			sum += a[i];
+		}
+		if (sum == 0) {
+			return 0;
+		}
+		return c0[start] + sum * c[start];
+	}
+};
+
+int main() {
+	MotorCostCalculator mcc;
+
+	if (!mcc.readInput()) {
+		std::cout << "input error\n";
+		return 1;
+	}
+
+	mcc.calculate();
+
+	std::cout << mcc.findMin() << "\n";
+
+}
